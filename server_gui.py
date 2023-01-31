@@ -36,7 +36,7 @@ clientFrame.pack(side=tk.BOTTOM, pady=(5, 10))
 
 
 server = None
-HOST_ADDR = "192.168.1.7"
+HOST_ADDR = "192.168.1.78"
 HOST_PORT = 8080
 
 server_private_key=utils.createPrivateKey()

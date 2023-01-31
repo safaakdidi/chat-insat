@@ -30,8 +30,6 @@ class Client:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
 
-        msg = tk.Tk()
-        msg.withdraw()
 
 
         print(username)
@@ -64,12 +62,9 @@ class Client:
         self.sideFrame_label = tk.Label(self.sideFrame, text="Connected Users", bg="#021b39")
 
         self.sideFrame.pack(side=tk.LEFT, fill=tk.Y)
-
         self.listbox = tk.Listbox(self.sideFrame)
         self.listbox.pack(padx=20, pady=5)
-
         self.listbox.bind("<<ListboxSelect>>", self.on_select)
-
         self.displayFrame = tk.Frame(self.window)
         self.scrollBar = tk.Scrollbar(self.displayFrame)
         self.scrollBar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -81,9 +76,9 @@ class Client:
                          state="disabled")
         self.displayFrame.pack(side=tk.TOP)
         self.bottomFrame = tk.Frame(self.window)
-        self.tkMessage = tk.Text(self.bottomFrame, height=2, width=55)
+        self.tkMessage = tk.Text(self.bottomFrame, height=1, width=55)
         self.tkMessage.pack(side=tk.LEFT, padx=(5, 13), pady=(5, 10))
-        self.tkMessage.config(highlightbackground="grey", state="disabled")
+        self.tkMessage.config(highlightbackground="grey")
         self.tkMessage.bind("<Return>", (lambda event: self.getChatMessage(self.tkMessage.get("1.0", tk.END))))
         self.bottomFrame.pack(side=tk.BOTTOM)
         self.gui_done = True
@@ -126,19 +121,30 @@ class Client:
 
 
     def on_select(self,event):
-        selection = self.listbox.get(self.listbox.curselection())
-        print(selection)
+        if self.listbox.curselection():
+            selection = self.listbox.get(self.listbox.curselection())
+            print(selection)
+            self.tkMessage.insert('end', f"@{selection} ")
+            self.tkMessage.yview('end')
+        else:
+            print("empty")
+
+
+
+
+
+
     def update_active_users(self,active_users):
         self.listbox.config(state='normal')
         self.listbox.delete(0, tk.END)
         for user in active_users:
             if user != username:
                 self.listbox.insert(tk.END, user)
-    def getChatMessage(self,msg):
 
+
+    def getChatMessage(self,msg):
         msg = msg.replace('\n', '')
         texts = self.tkDisplay.get("1.0", tk.END).strip()
-
         # enable the display area and insert the text and then disable.
         # why? Apparently, tkinter does not allow use insert into a disabled Text widget :(
         self.tkDisplay.config(state=tk.NORMAL)
@@ -146,18 +152,17 @@ class Client:
             self.tkDisplay.insert(tk.END, "You->" + msg, "tag_your_message")  # no line
         else:
             self.tkDisplay.insert(tk.END, "\n\n" + "You->" + msg, "tag_your_message")
-
         self.tkDisplay.config(state=tk.DISABLED)
-
         self.send_mssage_to_server(msg)
-
         self.tkDisplay.see(tk.END)
         self.tkMessage.delete('1.0', tk.END)
+
+
     def send_mssage_to_server(self,msg):
         client_msg = str(msg)
-        client.send(client_msg.encode())
+        self.socket.send(client_msg.encode())
         if msg == "exit":
-            client.close()
+            self.socket.close()
             self.window.destroy()
         print("Sending message")
 
