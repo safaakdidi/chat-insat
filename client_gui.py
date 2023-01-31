@@ -1,5 +1,6 @@
+import time
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, Frame, Text
 import socket
 import threading
 from utils import *
@@ -8,7 +9,7 @@ username = " "
 active_users = []
 # network client
 client = None
-HOST_ADDR = "192.168.1.78"
+HOST_ADDR = "192.168.1.7"
 HOST_PORT = 8080
 username = " "
 active_users = []
@@ -18,66 +19,47 @@ active_users = []
 
 
 class Client:
+
+
+
+
     def __init__(self, host, port, username):
+
         self.private_key = createPrivateKey()
         self.public_key =extractPublicKey(self.private_key)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
+
+        msg = tk.Tk()
+        msg.withdraw()
+
+
         print(username)
         self.socket.send(username.encode())
         self.username = username
         self.gui_done = False
         self.running = True
-        self.tkDisplay = None
-        msg = tk.Tk()
-        msg.withdraw()
 
 
-        gui_thred = threading.Thread(target=self.client_gui)
+
+
+        gui_thread = threading.Thread(target=self.client_gui)
         receive_thread =threading.Thread(target=self.receive_message_from_server)
-        gui_thred.start()
+        gui_thread.start()
+        time.sleep(1)
         receive_thread.start()
-    def receive_message_from_server(self):
 
-        while True:
 
-            from_server = self.socket.recv(4096).decode()
-            if not from_server: break
 
-            print("from server")
-            print(from_server)
-
-            # display message from server on the chat window
-            if from_server.startswith("[Active Users] "):
-                active_users = from_server.split(" ")[2:]
-                self.update_active_users(active_users)
-
-            # enable the display area and insert the text and then disable.
-            # why? Apparently, tkinter does not allow us insert into a disabled Text widget :(
-            self.window.update()
-
-            texts = self.tkDisplay.get("1.0", tk.END).strip()
-
-            self.tkDisplay.config(state=tk.NORMAL)
-            if len(texts) < 1:
-                self.tkDisplay.insert(tk.END, from_server)
-            else:
-                self.tkDisplay.insert(tk.END, "\n\n" + from_server)
-
-            self.tkDisplay.config(state=tk.DISABLED)
-            self.tkDisplay.see(tk.END)
-
-            # print("Server says: " +from_server)
-
-        self.socket.close()
-        self.window.destroy()
     def client_gui(self):
+
+
         self.window = tk.Tk()
         self.window.title("Chat")
-        self.topFrame = tk.Frame(self.window)
-
-        # btnConnect.bind('<Button-1>', connect)
-        self.topFrame.pack(side=tk.TOP)
+        # self.topFrame = tk.Frame(self.window)
+        #
+        # # btnConnect.bind('<Button-1>', connect)
+        # self.topFrame.pack(side=tk.TOP)
         self.sideFrame = tk.Frame(self.window, width=200, height=300, bg="grey")
         self.sideFrame_label = tk.Label(self.sideFrame, text="Connected Users", bg="#021b39")
 
@@ -104,7 +86,45 @@ class Client:
         self.tkMessage.config(highlightbackground="grey", state="disabled")
         self.tkMessage.bind("<Return>", (lambda event: self.getChatMessage(self.tkMessage.get("1.0", tk.END))))
         self.bottomFrame.pack(side=tk.BOTTOM)
+        self.gui_done = True
         self.window.mainloop()
+
+
+    def receive_message_from_server(self):
+        while True:
+
+            from_server = self.socket.recv(4096).decode()
+            if not from_server: break
+
+            print("from server")
+            print(from_server)
+
+            # display message from server on the chat window
+            if from_server.startswith("[Active Users] "):
+
+                active_users = from_server.split(" ")[2:]
+                self.update_active_users(active_users)
+
+            # enable the display area and insert the text and then disable.
+            # why? Apparently, tkinter does not allow us insert into a disabled Text widget :(
+
+            texts = self.tkDisplay.get("1.0", tk.END).strip()
+
+            self.tkDisplay.config(state=tk.NORMAL)
+            if len(texts) < 1:
+                self.tkDisplay.insert(tk.END, from_server)
+            else:
+                self.tkDisplay.insert(tk.END, "\n\n" + from_server)
+
+            self.tkDisplay.config(state=tk.DISABLED)
+            self.tkDisplay.see(tk.END)
+
+            # print("Server says: " +from_server)
+
+        self.socket.close()
+        self.window.destroy()
+
+
     def on_select(self,event):
         selection = self.listbox.get(self.listbox.curselection())
         print(selection)

@@ -4,19 +4,6 @@ from  tkinter import messagebox
 import sign
 import utils
 from client_gui import Client
-import socket
-
-
-
-
-# network client
-client = None
-HOST_ADDR = "192.168.1.78"
-HOST_PORT = 8080
-
-
-
-
 
 
 def login_user():
@@ -24,19 +11,17 @@ def login_user():
         messagebox.showerror('Error','All fields Are required')
 
     else:
-      if sign.signIn(usernameEntry.get(),pwdEntry.get())==None:
-          messagebox.showerror('Error', 'Invalid username or password')
-      else:
-          #if utils.verifyCert('build/client.pem'):
-          client = Client("192.168.1.78", 8080, usernameEntry.get())
+        if sign.signIn(usernameEntry.get(), pwdEntry.get()) == None:
+            messagebox.showerror('Error', 'Invalid username or password')
+        else:
+            # if utils.verifyCert('build/client.pem'):
+            client = Client("192.168.1.7", 8080, usernameEntry.get())
+            root.destroy()
+            messagebox.showinfo('Welcome', 'login is successful')
 
-          messagebox.showinfo('Welcome','login is successful')
-          root.destroy()
 
-
-          #else:
-            #messagebox.showerror('Error', 'Invalid certificate')
-
+            # else:
+            # messagebox.showerror('Error', 'Invalid certificate')
 
 def signup_page():
     root.destroy()

@@ -2,6 +2,7 @@ import tkinter as tk
 import socket
 import threading
 
+import utils
 
 window = tk.Tk()
 window.title("Sever")
@@ -35,8 +36,12 @@ clientFrame.pack(side=tk.BOTTOM, pady=(5, 10))
 
 
 server = None
-HOST_ADDR = "192.168.1.78"
+HOST_ADDR = "192.168.1.7"
 HOST_PORT = 8080
+
+server_private_key=utils.createPrivateKey()
+server_pub_key=utils.extractPublicKey(server_private_key)
+ser_pub_key=utils.serialize_key(server_pub_key)
 
 client_name = " "
 clients = []

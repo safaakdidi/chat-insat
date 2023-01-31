@@ -2,7 +2,7 @@ from tkinter import *
 from PIL import ImageTk
 from  tkinter import messagebox
 import sign
-import utils
+
 def clear():
     emailEntry.delete(0,END)
     usernameEntry.delete(0,END)
@@ -17,8 +17,8 @@ def connect_db():
     elif pwdEntry.get()!= pwd2Entry.get():
         messagebox.showerror('Error','passwords mismatch')
     else:
-        utils.createCertRequest(usernameEntry.get(),'TN','Tunis', 'insat', usernameEntry.get(), emailEntry.get(),'build/client.pem','build/client')
-        utils.createCert('build/client.pem')
+        # utils.createCertRequest(usernameEntry.get(),'TN','Tunis', 'insat', usernameEntry.get(), emailEntry.get(),'build/client.pem','build/client')
+        # utils.createCert('build/client.pem')
         sign.signUp(usernameEntry.get(),emailEntry.get(),pwdEntry.get())
         messagebox.showinfo('Success','Registration is successful')
 
