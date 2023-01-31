@@ -3,6 +3,20 @@ from PIL import ImageTk
 from  tkinter import messagebox
 import sign
 import utils
+from client_gui import Client
+import socket
+
+
+
+
+# network client
+client = None
+HOST_ADDR = "192.168.1.78"
+HOST_PORT = 8080
+
+
+
+
 
 
 def login_user():
@@ -13,10 +27,15 @@ def login_user():
       if sign.signIn(usernameEntry.get(),pwdEntry.get())==None:
           messagebox.showerror('Error', 'Invalid username or password')
       else:
-          if utils.verifyCert('build/client.pem'):
-              messagebox.showinfo('Welcome','login is successful')
-          else:
-              messagebox.showerror('Error', 'Invalid certificate')
+          #if utils.verifyCert('build/client.pem'):
+          client = Client("192.168.1.78", 8080, usernameEntry.get())
+
+          messagebox.showinfo('Welcome','login is successful')
+          root.destroy()
+
+
+          #else:
+            #messagebox.showerror('Error', 'Invalid certificate')
 
 
 def signup_page():
