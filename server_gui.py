@@ -1,3 +1,4 @@
+import time
 import tkinter as tk
 import socket
 import threading
@@ -36,7 +37,7 @@ clientFrame.pack(side=tk.BOTTOM, pady=(5, 10))
 
 
 server = None
-HOST_ADDR = "192.168.1.78"
+HOST_ADDR = "192.168.1.7"
 HOST_PORT = 8080
 
 server_private_key=utils.createPrivateKey()
@@ -97,8 +98,11 @@ def send_receive_client_message(client_connection, client_ip_addr):
 
     # send welcome message to client
     client_name  = client_connection.recv(4096).decode()
-    welcome_msg = "Welcome " + client_name + ". Use 'exit' to quit"
+    welcome_msg = "Welcome " + client_name + ". Use 'exit' to quit ."
     client_connection.send(welcome_msg.encode())
+    time.sleep(0.5)
+    client_connection.send(f"PUBKEY {ser_pub_key.decode()}".encode())
+    time.sleep(0.5)
     send_active_users()
 
     clients_names.append(client_name)

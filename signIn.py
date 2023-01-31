@@ -15,7 +15,7 @@ def login_user():
             messagebox.showerror('Error', 'Invalid username or password')
         else:
             # if utils.verifyCert('build/client.pem'):
-            client = Client("192.168.1.78", 8080, usernameEntry.get())
+            client = Client("192.168.1.7", 8080, usernameEntry.get())
             root.destroy()
             messagebox.showinfo('Welcome', 'login is successful')
 
