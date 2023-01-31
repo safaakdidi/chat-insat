@@ -37,7 +37,7 @@ clientFrame.pack(side=tk.BOTTOM, pady=(5, 10))
 
 
 server = None
-HOST_ADDR = "192.168.1.7"
+HOST_ADDR = "192.168.1.78"
 HOST_PORT = 8080
 
 server_private_key=utils.createPrivateKey()
@@ -49,8 +49,9 @@ print('serializable')
 print(ser_pub_key)
 
 client_name = " "
-clients = []
+clients = {}
 clients_names = []
+client_public_keys ={}
 clients_keys={}
 
 def send_active_users():
@@ -89,10 +90,24 @@ def stop_server():
 def accept_clients(the_server, y):
     while True:
         client, addr = the_server.accept()
-        clients.append(client)
 
         # use a thread so as not to clog the gui thread
         threading._start_new_thread(send_receive_client_message, (client, addr))
+
+
+def send_private_message( recipient, message, sender):
+    for client in clients:
+        print(clients[client])
+        if clients[client] == recipient:
+            print("recipient")
+            key = clients_keys[client]
+            message = f"{sender} -> you : {message}"
+            print("message")
+            print(message)
+            client.send(utils.encrypt_message(key, message))
+            print("sent success")
+
+
 
 
 # Function to receive message from current client AND
@@ -101,9 +116,9 @@ def send_receive_client_message(client_connection, client_ip_addr):
     global server, client_name, clients, clients_addr
     client_msg = " "
 
-
     # send welcome message to client
     client_name  = client_connection.recv(4096).decode()
+    clients[client_connection] = client_name
 
     print(client_name)
     print("0000000000000000000000000000")
@@ -114,7 +129,7 @@ def send_receive_client_message(client_connection, client_ip_addr):
         key = " ".join(from_client.split(" ")[1:]).encode()
         print(key)
         pub_key = utils.desrialize_key(key)
-        clients_keys[client_name] = pub_key
+        clients_keys[client_connection] = pub_key
 
     welcome_msg = "Welcome " + client_name + ". Use 'exit' to quit ."
     client_connection.send(welcome_msg.encode())
@@ -127,20 +142,26 @@ def send_receive_client_message(client_connection, client_ip_addr):
 
     update_client_names_display(clients_names)  # update client names display
 
+
     while True:
         data = client_connection.recv(4096).decode()
         if not data: break
-        if data == "exit": break
+        if data == "exit" : break
 
         client_msg = data
 
         idx = get_client_index(clients, client_connection)
         sending_client_name = clients_names[idx]
+        print(client_msg)
 
-        for c in clients:
-            if c != client_connection:
-                server_msg = str(sending_client_name + "->" + client_msg)
-                c.send(server_msg.encode())
+        if client_msg[0]=='@':
+            print("famaaa @")
+            recipient = client_msg.split(" ")[0][1:]
+            print(recipient)
+            message = " ".join(client_msg.split(" ")[1:])
+            print(message)
+            send_private_message(recipient, message, sending_client_name)
+
 
     # find the client index then remove from both lists(client name list and connection list)
     idx = get_client_index(clients, client_connection)
