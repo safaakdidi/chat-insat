@@ -42,11 +42,16 @@ HOST_PORT = 8080
 
 server_private_key=utils.createPrivateKey()
 server_pub_key=utils.extractPublicKey(server_private_key)
+print('server pub key')
+print(server_pub_key)
 ser_pub_key=utils.serialize_key(server_pub_key)
+print('serializable')
+print(ser_pub_key)
 
 client_name = " "
 clients = []
 clients_names = []
+clients_keys={}
 
 def send_active_users():
     active_users = "[Active Users] " + " ".join(clients_names)
@@ -96,8 +101,21 @@ def send_receive_client_message(client_connection, client_ip_addr):
     global server, client_name, clients, clients_addr
     client_msg = " "
 
+
     # send welcome message to client
     client_name  = client_connection.recv(4096).decode()
+
+    print(client_name)
+    print("0000000000000000000000000000")
+    time.sleep(0.5)
+    from_client = client_connection.recv(4096).decode()
+
+    if from_client.startswith('PUBKEY'):
+        key = " ".join(from_client.split(" ")[1:]).encode()
+        print(key)
+        pub_key = utils.desrialize_key(key)
+        clients_keys[client_name] = pub_key
+
     welcome_msg = "Welcome " + client_name + ". Use 'exit' to quit ."
     client_connection.send(welcome_msg.encode())
     time.sleep(0.5)
@@ -108,7 +126,6 @@ def send_receive_client_message(client_connection, client_ip_addr):
     clients_names.append(client_name)
 
     update_client_names_display(clients_names)  # update client names display
-
 
     while True:
         data = client_connection.recv(4096).decode()

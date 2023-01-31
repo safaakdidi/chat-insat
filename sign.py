@@ -43,7 +43,7 @@ def db_conn():
 
 def signUp(username, email, password):
     conn, c = db_conn()
-    if getUserByUsername()!=None:
+    if getUserByUsername(username)!=None:
         messagebox.showerror('Error','username already exists ')
     else:
         c.execute("""insert into User(email,username,password) values(?,?,?)""",

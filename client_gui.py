@@ -34,6 +34,8 @@ class Client:
 
         print(username)
         self.socket.send(username.encode())
+        time.sleep(0.5)
+        self.socket.send(f"PUBKEY {serialize_key(self.public_key).decode()}".encode())
         self.username = username
         self.gui_done = False
         self.running = True
@@ -91,8 +93,8 @@ class Client:
             from_server = self.socket.recv(4096).decode()
             if not from_server: break
 
-            print("from server")
-            print(from_server)
+            # print("from server")
+            # print(from_server)
 
 
             if from_server.startswith('Welcome'):
