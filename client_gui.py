@@ -87,10 +87,13 @@ class Client:
         self.window.mainloop()
 
 
+
+
+
     def receive_message_from_server(self):
         while True:
 
-            from_server = self.socket.recv(4096).decode()
+            from_server = self.socket.recv(4096).decode('utf-8')
             if not from_server: break
 
             # print("from server")
@@ -119,8 +122,18 @@ class Client:
 
                 active_users = from_server.split(" ")[2:]
                 self.update_active_users(active_users)
+            else:
 
-            # enable the display area and insert the text and then disable.
+                message = decrypt_message(self.private_key , from_server.encode())
+                print(type(message))
+                print('********************************')
+                print((message.encode()).decode())
+                self.tkDisplay.config(state='normal')
+                self.tkDisplay.insert('end', message)
+                self.tkDisplay.yview('end')
+                self.tkDisplay.config(state='disabled')
+
+                    # enable the display area and insert the text and then disable.
             # why? Apparently, tkinter does not allow us insert into a disabled Text widget :(
 
 
@@ -158,6 +171,8 @@ class Client:
         texts = self.tkDisplay.get("1.0", tk.END).strip()
         # enable the display area and insert the text and then disable.
         # why? Apparently, tkinter does not allow use insert into a disabled Text widget :(
+
+
         self.tkDisplay.config(state=tk.NORMAL)
         if len(texts) < 1:
             self.tkDisplay.insert(tk.END, "You->" + msg, "tag_your_message")  # no line
@@ -171,7 +186,10 @@ class Client:
 
     def send_mssage_to_server(self,msg):
         client_msg = str(msg)
-        self.socket.send(client_msg.encode())
+        text_to_send=encrypt_message(self.server_pub_key,client_msg)
+
+
+        self.socket.send(text_to_send)
         if msg == "exit":
             self.socket.close()
             self.window.destroy()
