@@ -104,7 +104,7 @@ def send_private_message( recipient, message, sender):
             message = f"{sender} -> you : {message}"
             print("message")
             print(message)
-            client.send(str(utils.encrypt_message(key, message)).encode())
+            client.send(utils.encrypt_message(key, message))
             print("sent success")
 
 

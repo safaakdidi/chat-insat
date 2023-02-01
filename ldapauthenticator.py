@@ -1,112 +1,89 @@
-import ldap
 import hashlib
+import ldap
 import sys
-from base64 import b64encode
 
 
-class LdapService():
-    ldap_server = "ldap://localhost:389"  # host address
-    ldap_ou = "security"  # organization unit
-    ldap_group = "security-group"  # organization sub-group
+LDAP_HOST = "ldap://localhost:389"
+ADMIN_PWD = "admin"
+BASE_DN="dc=gl42022,dc=insat"
+ADMIN_DN = "cn=admin,dc=gl42022,dc=insat"
+USERS_DN="ou=security,dc=gl42022,dc=insat"
 
-    # admin domain
-    LDAP_ADMIN_DN = "cn=admin,dc=insat,dc=tn"
-    LDAP_ADMIN_PWD = ""
 
-    def __init__(self, admin_pwd):
-        self.LDAP_ADMIN_PWD = admin_pwd
+def login(pseudo,pwd):
+    msg = ""
+    l = ldap.initiaLDAP_HOST)
+    # search for specific user
+    search_filter = "cn=" + pseudo
+    user_dn="cn="+pseudo+","+USERS_DN
+    print(user_dn)
 
-    def login(self, username, password):
-        self.username = username
-        self.password = password
-        # organization user's domain
-        user_dn = "cn=" + self.username + ",cn=" + self.ldap_group + ",ou=" + \
-                  self.ldap_ou + ",dc=insat,dc=tn"
+    # hashing the password
+    #password = pwd.encode()
+    hash_object = hashlib.sha256()
+    hash_object.update(pwd.encode("UTF-8"))
+    hashed_password = hash_object.hexdigest().encode("UTF-8")
+    print(hashed_password)
 
-        print(user_dn)
+    try:
+        l.bind_s(user_dn,hashed_password)
+        result = l.search_s(user_dn,ldap.SCOPE_SUBTREE,search_filter)
+        print(result)
+        msg = "Authentification succeeded"
+    except (ldap.INVALID_CREDENTIALS):
+        msg = "Authentification failed : username or password invalid"
 
-        # base domain
-        LDAP_BASE_DN = "cn=" + self.ldap_group + \
-                       ",ou=" + self.ldap_ou + ",dc=insat,dc=tn"
+    l.unbind_s()
+    return msg
 
-        # start connection
-        ldap_client = ldap.initialize(self.ldap_server)
-        # search for specific user
-        search_filter = "cn=" + self.username
+def getallUsers():
+    # connect to host with admin
+    l = ldap.initialize(LDAP_HOST)
+    l.simple_bind_s(ADMIN_DN, ADMIN_PWD)
+    # Search for all users
+    result = l.search_s(USERS_DN, ldap.SCOPE_SUBTREE, "(objectClass=person)")
+    logins=[]
+    # Print the results
+    for dn, entry in result:
+        logins.append(entry['cn'][0].decode("UTF-8"))
 
-        try:
-            # if authentication successful, get the full user data
-            ldap_client.bind_s(user_dn, self.password)
+    return logins
 
-            result = ldap_client.search_s(
-                LDAP_BASE_DN, ldap.SCOPE_SUBTREE, search_filter)
 
-            # return all user data results
-            ldap_client.unbind_s()
-            print(result)
-            return None
-        except ldap.INVALID_CREDENTIALS:
-            ldap_client.unbind()
-            print("Wrong username or password..")
-            return "Wrong username or password.."
-        except ldap.SERVER_DOWN:
-            print("Server is down at the moment, please try again later!")
-            return "Server is down at the moment, please try again later!"
-        except ldap.LDAPError:
-            ldap_client.unbind_s()
-            print("Authentication error!")
-            return "Authentication error!"
+def register(user):
+    dn="cn="+user['username']+','+USERS_DN
 
-    def register(self, user):
+    hash_object = hashlib.sha256()
+    hash_object.update(user['password'].encode("UTF-8"))
+    hashed_password = hash_object.hexdigest()
 
-        # base domain
-        LDAP_BASE_DN = "cn=" + self.ldap_group + \
-                       ",ou=" + self.ldap_ou + ",dc=insat,dc=tn"
-        # home base
-        HOME_BASE = "/home/users"
+    entry=[]
+    entry.extend([
+        ('objectClass', [b"top", b"person", b"organizationalPerson", b"inetOrgPerson"]),
+        ('givenname', user['firstname'].encode("UTF-8")),
+        ('sn', user['lastname'].encode("UTF-8")),
+        ('uid', user['numCarte'].encode("UTF-8")),
+        ('userPassword', hashed_password.encode("UTF-8") ) ])
 
-        # new user domain
-        dn = 'cn=' + user['username'] + ',' + LDAP_BASE_DN
-        home_dir = HOME_BASE + '/' + user['username']
-        gid = user['group_id']
+    # connect to host with admin
+    l = ldap.initialize(LDAP_HOST)
+    l.simple_bind_s(ADMIN_DN, ADMIN_PWD)
 
-        # encoding password using md5 hash function
-        hashed_pwd = hashlib.md5(user['password'].encode("UTF-8"))
+    try:
+        # add entry in the directory
+        l.add_s(dn, entry)
+        print("success")
+        return None
+    except Exception:
+        return sys.exc_info()[0]
+    finally:
+        # disconnect and free memory
+        l.unbind_s()
 
-        # printing the equivalent byte value.
-        # print("The byte equivalent of hash is : ", end="")
-        # print(result.hexdigest())
-
-        entry = []
-        entry.extend([
-            ('objectClass', [b'inetOrgPerson',
-                             b'posixAccount', b'top']),
-            ('uid', user['username'].encode("UTF-8")),
-            ('givenname', user['username'].encode("UTF-8")),
-            ('sn', user['username'].encode("UTF-8")),
-            ('mail', user['email'].encode("UTF-8")),
-            ('uidNumber', user['uid'].encode("UTF-8")),
-            ('gidNumber', str(gid).encode("UTF-8")),
-            ('loginShell', [b'/bin/sh']),
-            ('homeDirectory', home_dir.encode("UTF-8")),
-            ('userPassword', [b'{md5}' +
-                              b64encode(hashed_pwd.digest())])
-
-        ])
-
-        # connect to host with admin
-        ldap_conn = ldap.initialize(self.ldap_server)
-        ldap_conn.simple_bind_s(self.LDAP_ADMIN_DN, "24934500")
-
-        try:
-            # add entry in the directory
-            ldap_conn.add_s(dn, entry)
-            print("success")
-            return None
-        except Exception:
-            print(sys.exc_info())
-            return sys.exc_info()[0]
-
-        finally:
-            # disconnect and free memory
-            ldap_conn.unbind_s()
+user_obj = {
+    'username': 'guest1',
+    'password': '0010',
+    'numCarte': '1601222',  # student card
+    'firstname':'Foulen',
+    'lastname':'Fouleni'
+}

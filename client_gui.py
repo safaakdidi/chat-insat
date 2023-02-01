@@ -133,10 +133,10 @@ class Client:
 
     def send_mssage_to_server(self,msg):
         client_msg = str(msg)
-        text_to_send=encrypt_message(self.server_pub_key,client_msg)
+        # text_to_send=encrypt_message(self.server_pub_key,client_msg)
 
 
-        self.socket.send(text_to_send)
+        self.socket.send(client_msg.encode())
         if msg == "exit":
             self.socket.close()
             self.window.destroy()
