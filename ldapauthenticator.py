@@ -12,7 +12,7 @@ USERS_DN="ou=security,dc=gl42022,dc=insat"
 
 def login(pseudo,pwd):
     msg = ""
-    l = ldap.initiaLDAP_HOST)
+    l = ldap.initialize(LDAP_HOST)
     # search for specific user
     search_filter = "cn=" + pseudo
     user_dn="cn="+pseudo+","+USERS_DN
@@ -60,9 +60,7 @@ def register(user):
     entry=[]
     entry.extend([
         ('objectClass', [b"top", b"person", b"organizationalPerson", b"inetOrgPerson"]),
-        ('givenname', user['firstname'].encode("UTF-8")),
-        ('sn', user['lastname'].encode("UTF-8")),
-        ('uid', user['numCarte'].encode("UTF-8")),
+        ('sn', user['email'].encode("UTF-8")),
         ('userPassword', hashed_password.encode("UTF-8") ) ])
 
     # connect to host with admin
@@ -82,8 +80,6 @@ def register(user):
 
 user_obj = {
     'username': 'guest1',
-    'password': '0010',
-    'numCarte': '1601222',  # student card
-    'firstname':'Foulen',
-    'lastname':'Fouleni'
+    'password': '123',
+    'email':'guest@gmail.com'
 }

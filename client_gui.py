@@ -9,7 +9,7 @@ username = " "
 active_users = []
 # network client
 client = None
-HOST_ADDR = "192.168.1.7"
+HOST_ADDR = "192.168.147.3"
 HOST_PORT = 8080
 username = " "
 active_users = []

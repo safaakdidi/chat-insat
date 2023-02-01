@@ -37,7 +37,7 @@ clientFrame.pack(side=tk.BOTTOM, pady=(5, 10))
 
 
 server = None
-HOST_ADDR = "192.168.1.7"
+HOST_ADDR = "192.168.147.3"
 HOST_PORT = 8080
 
 server_private_key=utils.createPrivateKey()
@@ -101,7 +101,7 @@ def send_private_message( recipient, message, sender):
         if clients[client] == recipient:
             print("recipient")
             key = clients_keys[client]
-            message = f"{sender} -> you : {message}"
+            message = f"\n\n {sender} -> you : {message}"
             print("message")
             print(message)
             client.send(utils.encrypt_message(key, message))

@@ -17,6 +17,14 @@ def connect_db():
     elif pwdEntry.get()!= pwd2Entry.get():
         messagebox.showerror('Error','passwords mismatch')
     else:
+        # user = {
+        #     'username': usernameEntry.get(),
+        #     'password': wdEntry.get(),
+        #     'email': emailEntry.get(),  # student card
+        # }
+
+        # # Register user with LDAP Service
+        # ldapserver.register(user)
         # utils.createCertRequest(usernameEntry.get(),'TN','Tunis', 'insat', usernameEntry.get(), emailEntry.get(),'build/client.pem','build/client')
         # utils.createCert('build/client.pem')
         sign.signUp(usernameEntry.get(),emailEntry.get(),pwdEntry.get())

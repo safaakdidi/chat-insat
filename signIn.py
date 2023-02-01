@@ -11,11 +11,22 @@ def login_user():
         messagebox.showerror('Error','All fields Are required')
 
     else:
+        # msg = ldapserver.login(usernameEntry.get(), pwdEntry.get())
+        # if (msg == "Authentification succeeded"):
+        #     msgCert = verif_cert(usernameEntry.get())
+        #     print(msgCert)
+        #     if (msgCert == "The certificate is authentic"):
+        #         # TODO : redirection + Get list of users for the connected one
+        #         print("ff")
+        #     else:
+        #         create_toplevel("HACKER !!!!", msgCert)
+        # else:
+        #     create_toplevel("Error", msg)
         if sign.signIn(usernameEntry.get(), pwdEntry.get()) == None:
             messagebox.showerror('Error', 'Invalid username or password')
         else:
             # if utils.verifyCert('build/client.pem'):
-            client = Client("192.168.1.7", 8080, usernameEntry.get())
+            client = Client("192.168.147.3", 8080, usernameEntry.get())
             root.destroy()
             messagebox.showinfo('Welcome', 'login is successful')
 
