@@ -9,7 +9,7 @@ username = " "
 active_users = []
 # network client
 client = None
-HOST_ADDR = "192.168.1.7"
+HOST_ADDR = "192.168.56.1"
 HOST_PORT = 8080
 username = " "
 active_users = []
@@ -24,7 +24,6 @@ class Client:
 
 
     def __init__(self, host, port, username):
-
         self.private_key = createPrivateKey()
         self.public_key =extractPublicKey(self.private_key)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -90,55 +89,6 @@ class Client:
 
 
 
-    def receive_message_from_server(self):
-        while True:
-
-            from_server = self.socket.recv(4096)
-            if not from_server: break
-
-            # print("from server")
-            # print(from_server)
-
-
-            if from_server.startswith('Welcome'):
-                texts = self.tkDisplay.get("1.0", tk.END).strip()
-
-                self.tkDisplay.config(state=tk.NORMAL)
-                if len(texts) < 1:
-                    self.tkDisplay.insert(tk.END, from_server[:from_server.index(" .")])
-                else:
-                    self.tkDisplay.insert(tk.END, "\n\n" + from_server[:from_server.index(" .")])
-
-                self.tkDisplay.config(state=tk.DISABLED)
-                self.tkDisplay.see(tk.END)
-
-            elif from_server.startswith('PUBKEY'):
-                key = " ".join(from_server.split(" ")[1:]).encode()
-                self.server_pub_key = desrialize_key(key)
-
-
-            # display message from server on the chat window
-            elif from_server.startswith("[Active Users] "):
-
-                active_users = from_server.split(" ")[2:]
-                self.update_active_users(active_users)
-            else:
-                message = decrypt_message(self.private_key , from_server)
-                self.tkDisplay.config(state='normal')
-                self.tkDisplay.insert('end', message)
-                self.tkDisplay.yview('end')
-                self.tkDisplay.config(state='disabled')
-
-                    # enable the display area and insert the text and then disable.
-            # why? Apparently, tkinter does not allow us insert into a disabled Text widget :(
-
-
-
-            # print("Server says: " +from_server)
-
-        self.socket.close()
-        self.window.destroy()
-
 
     def on_select(self,event):
         if self.listbox.curselection():
@@ -171,7 +121,7 @@ class Client:
 
         self.tkDisplay.config(state=tk.NORMAL)
         if len(texts) < 1:
-            self.tkDisplay.insert(tk.END, "You->" + msg, "tag_your_message")  # no line
+            self.tkDisplay.insert(tk.END, '\n\n'+"You->" + msg, "tag_your_message ")  # no line
         else:
             self.tkDisplay.insert(tk.END, "\n\n" + "You->" + msg, "tag_your_message")
         self.tkDisplay.config(state=tk.DISABLED)
@@ -182,6 +132,8 @@ class Client:
 
     def send_mssage_to_server(self,msg):
         client_msg = str(msg)
+        # text_to_send=encrypt_message(self.server_pub_key,client_msg)
+
 
         self.socket.send(client_msg.encode())
         if msg == "exit":
@@ -190,4 +142,56 @@ class Client:
         print("Sending message")
 
 
+    def receive_message_from_server(self):
+        while True:
 
+            from_server = decrypt_message(self.private_key
+                                          ,self.socket.recv(4096))
+            if not from_server: break
+
+            # print("from server")
+            # print(from_server)
+
+
+            if from_server.startswith('Welcome'):
+                texts = self.tkDisplay.get("1.0", tk.END).strip()
+
+                self.tkDisplay.config(state=tk.NORMAL)
+                if len(texts) < 1:
+                    self.tkDisplay.insert(tk.END, from_server[:from_server.index(" .")])
+                else:
+                    self.tkDisplay.insert(tk.END, "\n\n" + from_server[:from_server.index(" .")])
+
+                self.tkDisplay.config(state=tk.DISABLED)
+                self.tkDisplay.see(tk.END)
+
+            elif from_server.startswith('PUBKEY'):
+                key = " ".join(from_server.split(" ")[1:]).encode()
+                self.server_pub_key = desrialize_key(key)
+
+
+            # display message from server on the chat window
+            elif from_server.startswith("[Active Users] "):
+
+                active_users = from_server.split(" ")[2:]
+                self.update_active_users(active_users)
+            else:
+
+                message = decrypt_message(self.private_key , from_server.encode())
+                print(type(message))
+                print('********************************')
+                print((message.encode()).decode())
+                self.tkDisplay.config(state='normal')
+                self.tkDisplay.insert('end', message)
+                self.tkDisplay.yview('end')
+                self.tkDisplay.config(state='disabled')
+
+                    # enable the display area and insert the text and then disable.
+            # why? Apparently, tkinter does not allow us insert into a disabled Text widget :(
+
+
+
+            # print("Server says: " +from_server)
+
+        self.socket.close()
+        self.window.destroy()

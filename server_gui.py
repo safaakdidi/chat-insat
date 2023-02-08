@@ -37,7 +37,7 @@ clientFrame.pack(side=tk.BOTTOM, pady=(5, 10))
 
 
 server = None
-HOST_ADDR = "192.168.1.78"
+HOST_ADDR = "192.168.56.1"
 HOST_PORT = 8080
 
 server_private_key=utils.createPrivateKey()
@@ -101,7 +101,7 @@ def send_private_message( recipient, message, sender):
         if clients[client] == recipient:
             print("recipient")
             key = clients_keys[client]
-            message = f"{sender} -> you : {message}"
+            message = f"\n\n{sender} -> you : {message}"
             print("message")
             print(message)
             client.send(utils.encrypt_message(key, message))
@@ -144,11 +144,11 @@ def send_receive_client_message(client_connection, client_ip_addr):
 
 
     while True:
-        data = client_connection.recv(4096).decode()
+        data = client_connection.recv(4096)
         if not data: break
         if data == "exit" : break
 
-        client_msg = data
+        client_msg = utils.decrypt_message(server_private_key,data)
 
         idx = get_client_index(clients, client_connection)
         sending_client_name = clients_names[idx]
@@ -164,9 +164,6 @@ def send_receive_client_message(client_connection, client_ip_addr):
 
 
     # find the client index then remove from both lists(client name list and connection list)
-    idx = get_client_index(clients, client_connection)
-    del clients_names[idx]
-    del clients[idx]
     server_msg = "BYE!"
     client_connection.send(server_msg.encode())
     client_connection.close()
